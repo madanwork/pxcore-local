@@ -3,8 +3,6 @@ matrix:
   - os: linux
     dist: trusty
     sudo: required
-  - os: osx
-    osx_image: xcode8.1
 language: c++
 install:
 - mkdir $TRAVIS_BUILD_DIR/logs
@@ -25,7 +23,17 @@ script:
 - cd $TRAVIS_BUILD_DIR
 - sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh"
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh pxleakcheck_linux.sh; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh valgrind_linux.sh; fi
+- cd $TRAVIS_BUILD_DIR/examples/pxScene2d/
+- mkdir cov_report
+- cp -R src/* cov_report/.
+- cp -R ../../src/* cov_report/.
+- ln -s examples ../../examples
+- cd cov_report
+- coveralls -i .
+#- lcov -c  -d src/obj/ -b src -o profile1
+#- lcov -c  -d examples/pxScene2d/src/obj/ -b examples/pxScene2d/src/ -o profile2
+#- lcov -a profile1 -a profile2 -o  profile
+#- coveralls -i src -i examples/pxScene2d/src/ -l profile
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
@@ -42,7 +50,8 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get update; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git
   libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm
-  autoconf valgrind; fi
+  autoconf valgrind libyaml-dev lcov; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry pip install --user pyyaml cpp-coveralls; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ls -al $HOME/.ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH;
