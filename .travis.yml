@@ -23,12 +23,9 @@ before_script:
 - ccache -s
 script:
 - cd $TRAVIS_BUILD_DIR
-- sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh" "pxleakcheck_$TRAVIS_OS_NAME.sh"
-- cd $TRAVIS_BUILD_DIR/examples/pxScene2d/
-- lcov -c  -d src/obj/ -b src -o profile1
-- lcov -c  -d examples/pxScene2d/src/obj/ -b examples/pxScene2d/src/ -o profile2
-- lcov -a profile1 -a profile2 -o  profile
-- coveralls -i src -i examples/pxScene2d/src/ -l profile
+- sh build_px.sh "build_$TRAVIS_OS_NAME.sh" "testrunner_$TRAVIS_OS_NAME.sh"
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh pxleakcheck_linux.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sh valgrind_linux.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then cd $TRAVIS_BUILD_DIR; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then tar -cvzf logs.tgz logs/* ; fi
 addons:
@@ -45,23 +42,11 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get update; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry sudo apt-get install git
   libglew-dev freeglut3 freeglut3-dev libgcrypt11-dev zlib1g-dev g++ libssl-dev nasm
-  autoconf valgrind libyaml-dev lcov; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then travis_retry pip install --user pyyaml
-  cpp-coveralls; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then valgrind --version; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then brew update; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then eval "$(pyenv init -)"; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then pyenv install 2.7.6; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then pyenv global 2.7.6; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then pyenv rehash; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then pip install cpp-coveralls; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ];  then pyenv rehash; fi
+  autoconf valgrind; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ls -al $HOME/.ccache; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH=/usr/local/opt/ccache/libexec:$PATH;
   fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ]; then uname -a; fi
-- if [ "$TRAVIS_OS_NAME" == "osx" ]; then sw_vers; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then eval "$(ssh-agent -s)"; fi
 - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then  chmod 600 /tmp/pxscene-build.pem;
   fi
